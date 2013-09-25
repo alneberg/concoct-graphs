@@ -1,0 +1,79 @@
+{# index.html #}
+{% extends "base.html" %}
+{% block body %}
+<div id="offsetDiv">
+  <div id="chart">
+    <svg></svg>
+  </div>
+</div>
+<script>
+  var chart;
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+                  .showDistX(true)
+                  .showDistY(true)
+                  .color(d3.scale.category10().range())
+                  .transitionDuration(300)
+  ; 
+  
+    chart.xAxis.tickFormat(d3.format('.02f'))
+    chart.yAxis.tickFormat(d3.format('.02f'))
+    chart.tooltipContent(function(key) {
+        return '<h2>' + key + '</h2>';
+    });
+
+    d3.select('#chart svg')
+       .datum(randomData(4,40))
+       .call(chart);
+ 
+   nv.utils.windowResize(chart.update);
+ 
+   chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
+
+   return chart;
+ });
+ 
+ 
+ function getData() { 
+   var data = [],
+       shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'],
+       random = d3.random.normal();
+
+   var data_points = []
+   $.getJSON("/api/v1/TestE4_full.json"), function(data) {
+     /* each item in data corresponds to one contig */
+     for (var i = 0; i < data.length; i++) {
+        data_points.push({key: data[i]["Genome"]});
+     }
+   return data_points;
+  }
+ 
+ /**************************************
+  * Simple test data generator
+  */
+ 
+ function randomData(groups, points) { //# groups,# points per group
+   var data = [],
+       shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'],
+       random = d3.random.normal();
+ 
+   for (i = 0; i < groups; i++) {
+     data.push({
+       key: 'Group ' + i,
+       values: []
+		   });
+ 
+     for (j = 0; j < points; j++) {
+       data[i].values.push({
+         x: random()
+       , y: random()
+       , size: Math.random()
+       //, shape: shapes[j % 6]
+       });
+     }
+   }
+ 
+   return data;
+ }
+</script>
+{% endblock %}
