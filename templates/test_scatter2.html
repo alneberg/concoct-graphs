@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block body %}
+
+<style>
+
+body {
+  overflow-y:scroll;
+  margin: 0;
+  padding: 0;
+}
+
+svg {
+  overflow: hidden;
+}
+
+div {
+  border: 0;
+  margin: 0;
+}
+
+/*
+#offsetDiv {
+  margin-left: 100px;
+  margin-top: 100px;
+}
+*/
+
+
+#test1 {
+  margin: 0;
+}
+
+#test1 svg {
+  height: 500px;
+}
+
+</style>
+
+<body>
+
+<h1> Graph </h1>
+<div id="offsetDiv">
+  <div id="test1" class='with-3d-shadow with-transitions'>
+    <svg></svg>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  var chart;
+  nv.addGraph(function() {
+    chart = nv.models.scatterChart()
+                .showDistX(true)
+                .showDistY(true)
+                .useVoronoi(true)
+                .color(d3.scale.category10().range())
+                .transitionDuration(300)
+                ;
+
+    chart.xAxis.tickFormat(d3.format('.02f'));
+    chart.yAxis.tickFormat(d3.format('.02f'));
+    chart.tooltipContent(function(key) {
+        return '<h3>' + key + '</h3>';
+    });
+
+    d3.select('#test1 svg')
+        .datum(contig_data())
+        .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
+
+    return chart;
+  });
+
+  function contig_data() {
+  var data_out = [];
+
+  $.getJSON("{{data_url}}", function(data) {
+    var i = 0;
+
+    jQuery.each(data, function(genome,arr) {
+      data_out.push({
+        key: genome,
+        values: []
+      });
+
+      jQuery.each(arr, function(){
+        $(".data_div").append(arr);
+        var x = this['x'],
+            y = this['y'];
+        data_out[i].values.push({
+          x: this['x'],
+          y: this['y'],
+          size: 1,
+          shape: 'circle'
+        })
+      });
+    i++;
+    })
+  })
+  return data_out;
+  }
+
+contig_data();
+</script>
+{% endblock %}
